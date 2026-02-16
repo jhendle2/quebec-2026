@@ -2,7 +2,6 @@
 #define STRING_TYPES_H
 
 #include "Lexer/Delims.h"
-#include "Log/Log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -75,7 +74,7 @@ static inline bool isPossibleNumberDecimal(const char* s) {
     if (s==NULL || *s==0) return false;
     
     const char* t;
-    for (t = s+1; t && *t; t++) {
+    for (t = s; t && *t; t++) {
         if (!isDigitDecimal(*t)) return false;
     } return true;
 }
