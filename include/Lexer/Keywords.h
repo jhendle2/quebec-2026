@@ -16,7 +16,7 @@ KeywordUndefined=0,
 NumKeywords
 } Keyword;
 
-const char* strKeyword[] = {
+static const char* strKeyword[] = {
 "Undefined",
 #define Keyword(ID,S) QUOTE(ID),
     #include "Keywords.inc"

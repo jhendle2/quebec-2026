@@ -14,14 +14,14 @@ DelimUndefined=0,
 NumDelims
 } Delim;
 
-const char* strDelim[] = {
+static const char* strDelim[] = {
 "Undefined",
 #define Delim(ID,C) QUOTE(ID),
     #include "Delims.inc"
 #undef Delim
 };
 
-const char chrDelim[] = {
+static const char chrDelim[] = {
 0,
 #define Delim(ID,C) C,
     #include "Delims.inc"

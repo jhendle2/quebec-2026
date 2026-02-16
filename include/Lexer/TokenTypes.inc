@@ -1,0 +1,7 @@
+TokenType(Keyword)
+TokenType(Operator)
+TokenType(Identifier)
+TokenType(ConstInt)
+TokenType(ConstFloat)
+TokenType(ConstString)
+TokenType(ConstChar)

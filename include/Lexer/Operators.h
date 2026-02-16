@@ -16,7 +16,7 @@ OperatorUndefined=0,
 NumOperators
 } Operator;
 
-const char* strOperator[] = {
+static const char* strOperator[] = {
 "Undefined",
 #define Operator(ID,S) QUOTE(ID),
     #include "Operators.inc"
