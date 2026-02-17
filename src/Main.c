@@ -9,7 +9,7 @@
 int main(int argc, char** argv) {
     try (argc >= 3, "Usage: ./quebec -f FILE_PATH.c");
     try (strcmp(argv[1], "-f")==0, "Usage: ./quebec -f FILE_PATH.c");
-    for (size_t i = 1; i<argc; i++) {
+    for (size_t i = 1; i<(size_t)(argc); i++) {
         if (strcmp(argv[i], "-v")==0)
             gl_EnableDebug=true;
     }
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     Tokens tokens = tokenizeFile(file_path);
     dumpTokens(tokens);
     
-    // Snode snode = buildSyntaxTree(tokens);
+    Snode snode = buildSyntaxTree(tokens);
     destroyTokens(&tokens);
     
     return EXIT_SUCCESS;

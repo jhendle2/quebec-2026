@@ -1,8 +1,6 @@
-#include <stdio.h>
-
-int func();
+extern void printf(const char*, ...);
 
 int main(void) {
-    printf("Hello, World!\n"); // Line comment
+    printf("Hello, %s!\n", "Jonah"); // Line comment
     return 0;
 }

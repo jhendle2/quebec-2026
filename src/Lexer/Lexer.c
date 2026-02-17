@@ -1,9 +1,7 @@
 #include "Lexer/Lexer.h"
 #include "File/File.h"
-#include "Lexer/Keywords.h"
 #include "Lexer/Operators.h"
 #include "Lexer/StringTypes.h"
-#include "Log/Color.h"
 #include "Log/Log.h"
 
 #include <ctype.h>
@@ -25,7 +23,7 @@ Tokens tokenizeString(const char* file_path, const char* string, const size_t st
     Tokens tokens = NULL;
     char   text[MAX_TEXT] = "";
     size_t text_len = 0;
-    size_t string_index = 0;
+    // size_t string_index = 0;
 
     bool    in_string        = false,
             in_char          = false,
@@ -42,6 +40,7 @@ Tokens tokenizeString(const char* file_path, const char* string, const size_t st
     // not inside comments
     #define appendToken() \
     if ( (text_len>0) && !(in_comment_line || in_comment_block)) {\
+        dbug("PUSHED %s", text);\
         pushBackToken(\
             &tokens,\
             newToken(\
@@ -66,24 +65,26 @@ Tokens tokenizeString(const char* file_path, const char* string, const size_t st
             "Token is too long. Max size is (%d).", MAX_TEXT-1);\
         if (!(in_string || in_char) && text_len>=1) {\
             const char last_c = text[text_len-1];\
-            if ((isDelim(c) || isDelim(last_c)) &&\
-                !(isDigitDecimal(c)      && matchDelim(Period, last_c)) &&\
-                !(isDigitDecimal(last_c) && matchDelim(Period, c     ))\
+            if ((isDelim(C) || isDelim(last_c)) &&\
+                !(isDigitDecimal(C)      && matchDelim(Period, last_c)) &&\
+                !(isDigitDecimal(last_c) && matchDelim(Period, C     ))\
             ) {\
-                dbug("text = %s, c = %c", text, c);\
-                snprintf(op, MAX_OP, "%s%c", text, c);\
+                snprintf(op, MAX_OP, "%s%c", text, C);\
                 if (!isOperator(op)) {\
                     appendToken();\
-                } else flushToken();\
+                }\
             }\
         }\
-        text[text_len++] = c;\
+        text[text_len++] = C;\
         text[text_len+0] = 0;\
     }
 
     // ----------------------------------------------------------------
     // Main tokenizer loop
-    for (int c = string[string_index++]; string_index < string_len; c = string[string_index++]) {
+    // for (char c = string[string_index++]; string_index < string_len; c = string[string_index++]) {
+    for (size_t string_index = 0; string_index < string_len; string_index++) {
+        const char c = string[string_index];
+
         col++;
         dbug("@ [%zu] `%c` -> `%s`",
             string_index,
@@ -167,6 +168,7 @@ NextChar:
         }
     } appendToken();
 
+    dbug("[DONE]\n");
     return tokens;
 }
 

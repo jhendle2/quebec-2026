@@ -14,6 +14,10 @@ SyntaxType tokenToSyntaxType(const Token token) {
                 return SyntaxTypePrimitiveType;
             
             case KeywordConst:
+            case KeywordStatic:
+            case KeywordInline:
+            case KeywordRestrict:
+            case KeywordExtern:
                 return SyntaxTypeModifier;
 
             // Behave like both a modifier and a simple type

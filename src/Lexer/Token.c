@@ -1,18 +1,19 @@
 #include "Lexer/Token.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "Lexer/Common.h"
 #include "Lexer/StringTypes.h"
 #include "Log/Log.h"
 
-static const size_t TokenSize = sizeof(struct token_s);
+// static const size_t TokenSize = sizeof(struct token_s);
 
 static TokenValue getTokenValueFromString(Token token) {
+    try (token!=NULL, "Cannot get value from NULL token.");
     const char* text = token->text;
     
     // ----------------------------------------------------------------
-    dbug("AA\n");
     const Keyword possible_keyword = getKeyword(text);
     if (possible_keyword != KeywordUndefined) {
         return (TokenValue){
@@ -22,7 +23,6 @@ static TokenValue getTokenValueFromString(Token token) {
     }
 
     // ----------------------------------------------------------------
-    dbug("BB\n");
     const Operator possible_operator = getOperator(text);
     if (possible_operator != OperatorUndefined) {
         return (TokenValue){
@@ -32,7 +32,6 @@ static TokenValue getTokenValueFromString(Token token) {
     }
 
     // ----------------------------------------------------------------
-    dbug("CC\n");
     if (isPossibleString(text)) {
         return (TokenValue){
             .ttype=TokenTypeConstString,
@@ -47,7 +46,6 @@ static TokenValue getTokenValueFromString(Token token) {
     }
 
     // ----------------------------------------------------------------
-    dbug("DD\n");
     if (isPossibleFloat(text)) {
         return (TokenValue){
             .ttype=TokenTypeConstFloat,
@@ -77,7 +75,6 @@ static TokenValue getTokenValueFromString(Token token) {
     }
 
     // ----------------------------------------------------------------
-    dbug("EE\n");
     if (isPossibleIdentifier(text)) {
         return (TokenValue){
             .ttype=TokenTypeIdentifier,
@@ -86,7 +83,6 @@ static TokenValue getTokenValueFromString(Token token) {
     }
 
     // ----------------------------------------------------------------
-    dbug("FF\n");
     erro("Unsupported token type for `%s`.",
         token->text
     ); return (TokenValue){0};
@@ -106,7 +102,10 @@ Token newToken(
         text_len,
         file_path
     );
-    Token token = malloc(sizeof(*token) + text_len + 1); // +1 for null character
+
+    // Token token = malloc(sizeof(*token));
+    Token token = calloc(1, sizeof(*token) + text_len + 1); // +1 for null character
+    // Token token = malloc(sizeof(*token) + text_len + 1); // +1 for null character
     try (token != NULL, "Failed to allocate new Token.");
 
     token->row       = row;
@@ -114,8 +113,11 @@ Token newToken(
     token->file_path = file_path;
     token->prev      = token->next = NULL;
     
-    token->text = (char*)((intptr_t)(token) + (intptr_t)(TokenSize));
+    token->text = (char*)((size_t)(token) + (size_t)(sizeof(*token)));
+    // token->text = (char*)(token + offsetof(struct token_s, text));
     strncpy(token->text, text, text_len);
+    // dbug("token->text = %s\n", token->text);
+    // token->text = strndup(text, text_len);
     
     token->value = getTokenValueFromString(token);
     
@@ -169,6 +171,7 @@ void dumpTokens(const Tokens tokens) {
 
 void pushBackToken(Tokens* ptokens, Token next) {
     try (ptokens != NULL, "Failed to push back to NULL tokens.");
+    try (next    != NULL, "Failed to push back a NULL token.");
     
     Tokens tokens = (*ptokens);
     if (tokens == NULL) {

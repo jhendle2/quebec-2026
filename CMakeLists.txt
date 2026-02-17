@@ -9,9 +9,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-SET(CMAKE_CXX_FLAGS         "-Wall -Wextra")
-SET(CMAKE_CXX_FLAGS_DEBUG   "-g -Werror")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
+SET(CMAKE_C_FLAGS         "-Wall -Wextra -fsanitize=address -fno-omit-frame-pointer")
+SET(CMAKE_C_FLAGS_DEBUG   "-g -Werror")
+SET(CMAKE_C_FLAGS_RELEASE "-O3")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
