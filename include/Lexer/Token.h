@@ -48,5 +48,6 @@ Token pluckToken(Token* ptoken);
 Token copyToken(const Token token);
 void listTokens(const Tokens tokens);
 size_t lenTokens(const Tokens tokens);
+Tokens copyTokens(const Tokens tokens);
 
 #endif /* TOKEN_H */

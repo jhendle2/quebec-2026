@@ -285,3 +285,14 @@ size_t lenTokens(const Tokens tokens) {
     if (tokens->next == NULL) return 1;
     return 1 + lenTokens(tokens->next);
 }
+
+Tokens copyTokens(const Tokens tokens) {
+    Tokens copied = NULL;
+    FOREACH (Token, temp, tokens) {
+        pushBackToken(
+            &copied,
+            copyToken(temp)
+        );
+    }
+    return copied;
+}

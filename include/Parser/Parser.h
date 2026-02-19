@@ -9,11 +9,13 @@ struct syntax_node_s {
     Tokens     tokens;
     SyntaxType stype;
 
-    Snode      prev  , next;
-    Snode      parent, children;
+    Snode prev  , next;
+    Snode parent, left, right;
 };
 typedef Snode Snodes;
 
+void destroySnode(Snode* psnode);
+void treeSnode(const Snode snode, const size_t level);
 Snode buildSyntaxTree(const Token tokens);
 
 #endif /* PARSER_H */

@@ -1,6 +1,6 @@
 extern void printf(const char*, ...);
 
 int main(void) {
-    printf("Hello, %s!\n", "Jonah"); // Line comment
+    printf("Hello, World!\n");
     return 0;
 }

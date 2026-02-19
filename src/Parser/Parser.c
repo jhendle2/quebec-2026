@@ -12,8 +12,17 @@ Snode snodeFromToken(const Token token) {
     Snode snode = malloc(sizeof(*snode));
     snode->tokens = token;
     snode->stype  = tokenToSyntaxType(token);
-    snode->prev   = snode->next     = NULL;
-    snode->parent = snode->children = NULL;
+    snode->prev   = snode->next = NULL;
+    snode->parent = snode->left = snode->right = NULL;
+    return snode;
+}
+
+Snode snodeFromCopy(const Snode snode) {
+    Snode copy = malloc(sizeof(*copy));
+    copy->tokens = snode->tokens;
+    copy->stype  = snode->stype;
+    copy->prev   = snode->next = NULL;
+    copy->parent = snode->left = snode->right = NULL;
     return snode;
 }
 
@@ -38,11 +47,21 @@ void snodePushBack(Snode* psnode, Snode next) {
     );
 }
 
-void snodeAddChild(Snode snode, Snode child) {
-    snodePushBack(
-        &(snode->children),
-        child
-    );
+void snodeAddLeftChild(Snode snode, Snode child) {
+    // snodePushBack(
+    //     &(snode->left),
+    //     child
+    // );
+    snode->left = child;
+    child->parent = snode;
+}
+
+void snodeAddRightChild(Snode snode, Snode child) {
+    // snodePushBack(
+    //     &(snode->right),
+    //     child
+    // );
+    snode->right = child;
     child->parent = snode;
 }
 
@@ -81,8 +100,11 @@ void destroySnode(Snode* psnode) {
     Snode snode = (*psnode);
     if (snode == NULL) return;
 
-    if (snode->next)     destroySnode(&(snode->next    ));
-    if (snode->children) destroySnode(&(snode->children));
+    destroyTokens(&(snode->tokens));
+
+    if (snode->next ) destroySnode(&(snode->next    ));
+    if (snode->left ) destroySnode(&(snode->left    ));
+    if (snode->right) destroySnode(&(snode->right   ));
 
     (*psnode) = NULL;
 }
@@ -97,6 +119,24 @@ void dumpSnode(const Snode snode) {
         strSyntaxType[snode->stype]
     );
     listTokens(snode->tokens);
+}
+
+void treeSnode(const Snode snode, const size_t level) {
+    if (snode == NULL) {
+        printf("(null)");
+        return;
+    }
+
+    for (size_t i = 0; i < level; i++)
+        printf(" *");
+
+    printf(" %s ",
+        strSyntaxType[snode->stype]
+    );
+    listTokens(snode->tokens); printf("\n");
+
+    if (snode->left ) treeSnode(snode->left , level+1);
+    if (snode->right) treeSnode(snode->right, level+1);
 }
 
 void listSnodes(const Snodes snodes) {
@@ -124,49 +164,30 @@ Snode buildSyntaxTree(const Token tokens) {
     );
 
     // ----------------------------------------------------------------
-    Snode snode_stack = NULL;
-    #define snodeStackIsEmpty() (snode_stack==NULL)
-
-    #define say1(STRING, S) {\
-        printf("%-8s ", STRING);\
-            dumpSnode(S);\
-        printf("\n");\
-    }
-    #define say2(STRING, A, B) {\
-        printf("%-8s ", STRING);\
-            dumpSnode(A);\
-        printf(" +  ");\
-            dumpSnode(B);\
-        printf("\n");\
-    }
-
-    #define snodeStackPushToken(T) {\
-        snodePushBack(\
-            &snode_stack,\
-            snodeFromToken(\
-                copyToken(tokens->next)\
-            )\
-        ); say1("PUSH",snodeBack(snode_stack));\
-    }
+    Snode snode_stack    = NULL;
+    Snode current_parent = snode_stack;
 
     snodePushBack(&snode_stack,
         snodeFromToken(
             copyToken(tokens)
         )
     );
+
     FOREACH (Token, token, tokens->next) {
-        
-        const size_t stack_len = lenSnodes(snode_stack);
-        printf("@ `%s` -> ", token->text);
-        listSnodes(snode_stack); printf("(%zu)\n", stack_len);
+        // const size_t stack_len = lenSnodes(snode_stack);
+        // printf("@ `%s` -> ", token->text);
+        // listSnodes(snode_stack); printf("(%zu)\n", stack_len);
+
+        // Snode stack has a minimum size of 2
         snodePushBack(&snode_stack,
             snodeFromToken(
                 copyToken(token)
             )
         );
 
+        // Collapse the remaining snodes in the stack
         while (lenSnodes(snode_stack) >= 2) {
-            listSnodes(snode_stack); printf("(%zu)\n", stack_len);
+            // listSnodes(snode_stack); printf("(%zu)\n", stack_len);
             Snode back1 = snodePopBack(&snode_stack);
             Snode back2 = snodePopBack(&snode_stack);
 
@@ -175,228 +196,37 @@ Snode buildSyntaxTree(const Token tokens) {
                 back1->stype
             );
 
-            printf("%s `%s` + %s `%s` := %s\n\n",
-                strSyntaxType[back2->stype], back2->tokens->text,
-                strSyntaxType[back1->stype], back1->tokens->text,
-                strSyntaxType[combined_type]
-            );
+            // printf("%s `%s` + %s `%s` := %s\n\n",
+            //     strSyntaxType[back2->stype], back2->tokens->text,
+            //     strSyntaxType[back1->stype], back1->tokens->text,
+            //     strSyntaxType[combined_type]
+            // );
             if (combined_type == SyntaxTypeUndefined) {
                 snodePushBack(&snode_stack, back2);
                 snodePushBack(&snode_stack, back1);
                 break;
             }
             
-
-            pushBackToken(
-                &(back2->tokens),
-                back1->tokens
+            Snode next_parent = snodeFromToken(
+                copyTokens(
+                    back2->tokens
+                )
             );
-            back2->stype = combined_type;
-            snodePushBack(&snode_stack, back2);
+            pushBackToken(
+                &(next_parent->tokens),
+                copyTokens( // Otherwise, we double free
+                    back1->tokens
+                )
+            );
+            next_parent->stype = combined_type;
+            snodeAddLeftChild(next_parent, back2);
+            snodeAddRightChild( next_parent, back1);
+            snodePushBack(&snode_stack, next_parent);
+            next_parent->parent = current_parent;
+            current_parent = next_parent;
         }
-        
     }
+    // FIXME: Maybe assert the stack isn't empty?
 
-//     FOREACH(Token, token, tokens) {
-//         printf("snode_stack = ");
-//         listSnodes(snode_stack);
-//         printf("\n@ `%s`\n", token->text);
-        
-//         // Stack is size [0]
-//         if (snodeStackIsEmpty()) {
-//             printf("len(snode_stack) = 0\n");
-//             printf("STACK EMPTY\n");
-//             Snode push = snodeFromToken(
-//                 copyToken(token)
-//             );
-//             snodePushBack(
-//                 &snode_stack,
-//                 push
-//             ); say1("PUSH", push);
-            
-//             continue;
-//         }
-
-//         // Stack is size [1]
-//         printf("len(snode_stack) > 0\n");
-//         Snode back1 = snodePopBack(
-//             &snode_stack
-//         ); say1("POP", back1);
-//         if (snodeStackIsEmpty()) {
-//             printf("len(snode_stack) = 1\n");
-//             printf("STACK EMPTY\n");
-//             snodePushBack(
-//                 &snode_stack,
-//                 back1
-//             ); say1("PUSH", back1);
-
-//             Snode push = snodeFromToken(
-//                 copyToken(token)
-//             );
-//             snodePushBack(
-//                 &snode_stack,
-//                 push
-//             ); say1("PUSH", push);
-
-//             continue;
-//         }
-
-//         // Stack is size [>1]
-//         size_t limit = 0;
-//         printf("len(snode_stack) > 1\n");
-//         do {
-//             limit++;
-//             if (limit>=5) exit(EXIT_FAILURE);
-
-//             Snode back2 = snodePopBack(&snode_stack);
-//             SyntaxType combined_type = syntaxTypeMap(
-//                 back2->stype,
-//                 back1->stype
-//             );
-
-//             // ------------------------------------------------
-//             // Not a valid combination
-//             if (combined_type == SyntaxTypeUndefined) {
-//                 snodePushBack(
-//                     &snode_stack,
-//                     back2
-//                 ); say1("PUSH", back2);
-
-//                 snodePushBack(
-//                     &snode_stack,
-//                     back1
-//                 ); say1("PUSH", back1);
-
-//                 goto NextToken; // Give up and add a new token
-//             }
-            
-//             // ------------------------------------------------
-//             // Otherwise,
-//             back2->stype = combined_type;
-//             pushBackToken( // Combine these two sets of tokens
-//                 &(back2->tokens),
-//                 back1->tokens
-//             );
-//             back1 = back2;
-            
-//         } while (!snodeStackIsEmpty());
-
-//         // Restore `back1` to the stack b/c we're done processing
-// NextToken:
-//         snodePushBack(
-//             &snode_stack,
-//             back1
-//         );
-        // break;
-        // continue;
-
-        // printf("case 1\n");
-        // if (snodeStackIsEmpty()) {
-        //     snodeStackPushToken(
-        //         copyToken(token)
-        //     );
-        //     continue;
-        // }
-
-        // // printf("case 2\n");
-        // Snode back1 = snodePopBack(&snode_stack);
-        // say1("POP", back1);
-
-        // if (snodeStackIsEmpty()) {
-        //     snodePushBack(&snode_stack, back1);
-        //     say1("PUSH", back1);
-
-        //     snodeStackPushToken(copyToken(token));
-        //     continue;
-        // }
-        
-        // // printf("case 3\n");
-        // Snode back2 = snodePopBack(&snode_stack);
-        // say1("POP", back2);
-
-        // const SyntaxType combined_type = syntaxTypeMap(
-        //     back2->stype, 
-        //     back1->stype
-        // );
-
-        // if (combined_type == SyntaxTypeUndefined) {
-        //     snodePushBack(&snode_stack, back2);
-        //     snodePushBack(&snode_stack, back1);
-        //     continue;
-        // }
-
-        // pushBackToken(
-        //     &(back2->tokens),
-        //     back1->tokens
-        // );
-        // back2->stype = combined_type;
-        // snodePushBack(
-        //     &snode_stack,
-        //     back2
-        // );
-
-        // Snode back = snodePopBack(
-        //     &snode_stack
-        // );
-        // while (
-        //     syntaxTypeMap(
-        //         ,
-        //     )
-        // )
-        // Snode right = snodeFromToken(
-        //     copyToken(token)
-        // );
-        // Snode back  = snodeBack(snode_stack);
-        
-        // printf("%-8s ", "CHECK");
-        //     dumpSnode(back);
-        // printf(" +  ");
-        //     dumpSnode(right);
-        // printf("\n");
-
-        // SyntaxType combined_type = syntaxTypeMap(
-        //     back->stype,
-        //     right->stype
-        // );
-
-        // if (combined_type == SyntaxTypeUndefined) {
-        //     snodePushBack(
-        //         &snode_stack,
-        //         right
-        //     ); continue;
-        // }
-
-        // // while (combined_type != SyntaxTypeUndefined) {
-        //     Snode popped = snodePopBack(&snode_stack);
-        //     printf("%-8s ", "POP");
-        //         dumpSnode(popped);
-        //     printf("\n");
-
-        //     popped->stype = combined_type;
-        //     pushBackToken(
-        //         &(popped->tokens),
-        //         right->tokens
-        //     );
-        //     snodePushBack(&snode_stack, popped);
-        //     printf("%-8s ", "PUSH");
-        //         dumpSnode(popped);
-        //     printf("\n\n");
-            
-        //     // while (
-        //     //     syntaxTypeMap(
-        //     //         snodeBack(snode_stack),
-        //     //         right
-        //     //     )
-        //     // )
-        //     // back = snodeBack(snode_stack);
-        //     // combined_type = syntaxTypeMap(
-        //     //     back->stype,
-        //     //     right->stype
-        //     // );
-        // // }
-    // }
-
-    // ----------------------------------------------------------------
-    Snode snode_tree = NULL;
-    return snode_tree;
+    return snode_stack;
 }

@@ -47,8 +47,8 @@ size_t openFileAsStringAndClose(const char* file_path, char** pstring) {
     fread( (*pstring), 1, string_len, fp );
     (*pstring)[string_len] = 0; // Replaces EOF
 
-    printf("string_len = %zu\n", string_len);
-    printf("string = `%.*s`\n", (int)(string_len), *pstring);
+    // printf("string_len = %zu\n", string_len);
+    // printf("string = `%.*s`\n", (int)(string_len), *pstring);
 
     // ----------------------------------------------------------------
     closeFileIfPossible(file_path, fp);

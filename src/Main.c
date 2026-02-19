@@ -16,10 +16,14 @@ int main(int argc, char** argv) {
     const char* file_path = argv[2];
 
     Tokens tokens = tokenizeFile(file_path);
-    dumpTokens(tokens);
+    // dumpTokens(tokens);
     
     Snode snode = buildSyntaxTree(tokens);
+    treeSnode(snode, 0);
     destroyTokens(&tokens);
+
+    destroySnode(&snode);
+
     
     return EXIT_SUCCESS;
 }
