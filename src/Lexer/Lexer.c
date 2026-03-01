@@ -40,7 +40,7 @@ Tokens tokenizeString(const char* file_path, const char* string, const size_t st
     // not inside comments
     #define appendToken() \
     if ( (text_len>0) && !(in_comment_line || in_comment_block)) {\
-        dbug("PUSHED %s", text);\
+        /*dbug("PUSHED %s", text);*/\
         pushBackToken(\
             &tokens,\
             newToken(\
@@ -86,11 +86,11 @@ Tokens tokenizeString(const char* file_path, const char* string, const size_t st
         const char c = string[string_index];
 
         col++;
-        dbug("@ [%zu] `%c` -> `%s`",
-            string_index,
-            c,
-            text
-        );
+        // dbug("@ [%zu] `%c` -> `%s`",
+        //     string_index,
+        //     c,
+        //     text
+        // );
 
         // ----------------------------------------------------------------
         // Initiate a quoteable
@@ -168,7 +168,7 @@ NextChar:
         }
     } appendToken();
 
-    dbug("[DONE]\n");
+    // dbug("[DONE]\n");
     return tokens;
 }
 

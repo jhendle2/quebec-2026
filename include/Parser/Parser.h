@@ -16,6 +16,7 @@ typedef Snode Snodes;
 
 void destroySnode(Snode* psnode);
 void treeSnode(const Snode snode, const size_t level);
+void treeSnodeIfOnlyOneToken(const Snode snode, const size_t level);
 Snode buildSyntaxTree(const Token tokens);
 
 #endif /* PARSER_H */

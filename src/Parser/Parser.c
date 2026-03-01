@@ -1,5 +1,6 @@
 #include "Parser/Parser.h"
-#include "Lexer/Lexer.h"
+#include "Lexer/Operators.h"
+#include "Lexer/StringTypes.h"
 #include "Lexer/Token.h"
 #include "Log/Log.h"
 #include "Parser/SyntaxMap.h"
@@ -139,6 +140,35 @@ void treeSnode(const Snode snode, const size_t level) {
     if (snode->right) treeSnode(snode->right, level+1);
 }
 
+
+void treeSnodeIfOnlyOneToken(const Snode snode, const size_t level) {
+    if (snode == NULL) {
+        return;
+    }
+
+    if (snode->tokens==NULL) {
+        for (size_t i = 0; i < level; i++)
+            printf(" *");
+    
+        printf(" %s `%s`\n",
+            strSyntaxType[snode->stype],
+            snode->tokens->text
+        );
+    }
+    if (snode->tokens && snode->tokens->next == NULL) {
+        for (size_t i = 0; i < level; i++)
+            printf(" *");
+    
+        printf(" %s `%s`\n",
+            strSyntaxType[snode->stype],
+            snode->tokens->text
+        );
+    }
+
+    if (snode->left ) treeSnodeIfOnlyOneToken(snode->left , level+1);
+    if (snode->right) treeSnodeIfOnlyOneToken(snode->right, level+1);
+}
+
 void listSnodes(const Snodes snodes) {
     FOREACH(Snode, snode, snodes) {
         printf("[");
@@ -154,6 +184,58 @@ size_t lenSnodes(const Snodes snodes) {
 }
 
 // ================================================================
+static bool combineSnodeHelper(
+    Snode* p_snode_stack,
+    Snode* current_parent,
+    const Snode back1,
+    const Snode back2
+) {
+    // (1) Deduce combined type
+    const SyntaxType combined_type = syntaxTypeMap(
+        back2->stype,
+        back1->stype
+    );
+
+    // (2) If none possible, exit this function
+    // Use bool `false` to tell caller to skip this
+    dbug("%s `%s` + %s `%s` := %s",
+        strSyntaxType[back2->stype], back2->tokens->text,
+        strSyntaxType[back1->stype], back1->tokens->text,
+        strSyntaxType[combined_type]
+    );
+    if (combined_type == SyntaxTypeUndefined) {
+        snodePushBack(p_snode_stack, back2);
+        snodePushBack(p_snode_stack, back1);
+        return false;
+    }
+    
+    // (3) Build the new combined snode
+    Snode next_parent = snodeFromToken(
+        copyTokens(
+            back2->tokens
+        )
+    );
+    pushBackToken(
+        &(next_parent->tokens),
+        copyTokens( // Otherwise, we double free
+            back1->tokens
+        )
+    );
+    next_parent->stype = combined_type;
+
+    // (4) Add previous nodes as children and
+    // update tree to point at this new node
+    snodeAddLeftChild(next_parent, back2);
+    snodeAddRightChild( next_parent, back1);
+    snodePushBack(p_snode_stack, next_parent);
+    next_parent->parent = (*current_parent);
+    (*current_parent) = next_parent;
+
+    // (5) Success so caller doesn't `break` loop
+    return true;
+}
+
+
 Snode buildSyntaxTree(const Token tokens) {
     // ----------------------------------------------------------------
     try(tokens!=NULL,
@@ -175,7 +257,7 @@ Snode buildSyntaxTree(const Token tokens) {
 
     FOREACH (Token, token, tokens->next) {
         // const size_t stack_len = lenSnodes(snode_stack);
-        // printf("@ `%s` -> ", token->text);
+        printf("@ `%s` -> ", token->text);
         // listSnodes(snode_stack); printf("(%zu)\n", stack_len);
 
         // Snode stack has a minimum size of 2
@@ -188,45 +270,31 @@ Snode buildSyntaxTree(const Token tokens) {
         // Collapse the remaining snodes in the stack
         while (lenSnodes(snode_stack) >= 2) {
             // listSnodes(snode_stack); printf("(%zu)\n", stack_len);
-            Snode back1 = snodePopBack(&snode_stack);
-            Snode back2 = snodePopBack(&snode_stack);
 
-            SyntaxType combined_type = syntaxTypeMap(
-                back2->stype,
-                back1->stype
-            );
-
-            // printf("%s `%s` + %s `%s` := %s\n\n",
-            //     strSyntaxType[back2->stype], back2->tokens->text,
-            //     strSyntaxType[back1->stype], back1->tokens->text,
-            //     strSyntaxType[combined_type]
-            // );
-            if (combined_type == SyntaxTypeUndefined) {
-                snodePushBack(&snode_stack, back2);
-                snodePushBack(&snode_stack, back1);
-                break;
+            // Look-ahead twice is best way to find function calls
+            if (
+                (token->next != NULL) &&
+                isPossibleIdentifier(token->text) &&
+                matchOperator(ParenOpen, token->next->text)
+            ) {
+                // We append this extra token before collapsing the stack
+                snodePushBack(&snode_stack,
+                    snodeFromToken(
+                    copyToken(token->next)
+                    )
+                ); token = token->next;
             }
-            
-            Snode next_parent = snodeFromToken(
-                copyTokens(
-                    back2->tokens
-                )
-            );
-            pushBackToken(
-                &(next_parent->tokens),
-                copyTokens( // Otherwise, we double free
-                    back1->tokens
-                )
-            );
-            next_parent->stype = combined_type;
-            snodeAddLeftChild(next_parent, back2);
-            snodeAddRightChild( next_parent, back1);
-            snodePushBack(&snode_stack, next_parent);
-            next_parent->parent = current_parent;
-            current_parent = next_parent;
+
+            // Now, we collapse the top 2 on the stack until we run out
+            if (!combineSnodeHelper(
+                &snode_stack,
+                &current_parent,
+                snodePopBack(&snode_stack),
+                snodePopBack(&snode_stack)
+            )) break;   // If this is an undefined combination, escape the loop
+                        // so we move onto the next token
         }
     }
     // FIXME: Maybe assert the stack isn't empty?
-
     return snode_stack;
 }

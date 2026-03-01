@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
     
     Snode snode = buildSyntaxTree(tokens);
     treeSnode(snode, 0);
+    // treeSnodeIfOnlyOneToken(snode, 0);
     destroyTokens(&tokens);
 
     destroySnode(&snode);

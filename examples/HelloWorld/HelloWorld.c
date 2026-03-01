@@ -1,6 +1,6 @@
 extern void printf(const char*, ...);
 
-int main(void) {
+int main(int argc, char** argv) {
     printf("Hello, World!\n");
     return 0;
 }

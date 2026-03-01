@@ -95,13 +95,13 @@ Token newToken(
     const size_t    text_len ,
     const char*     file_path
 ) {
-    dbug("newToken(%d, %d, \"%s\", %zu, \"%s\")\n",
-        row,
-        col,
-        text,
-        text_len,
-        file_path
-    );
+    // dbug("newToken(%d, %d, \"%s\", %zu, \"%s\")\n",
+    //     row,
+    //     col,
+    //     text,
+    //     text_len,
+    //     file_path
+    // );
 
     // Token token = malloc(sizeof(*token));
     Token token = calloc(1, sizeof(*token) + text_len + 1); // +1 for null character
