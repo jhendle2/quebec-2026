@@ -1,3 +1,6 @@
 SyntaxError(UnmatchedElse     , "`else` must always follow a valid `if` body or statement")
 SyntaxError(IfMissingCondition, "`if` must always lead a condition, i.e. `if (CONDITION) ...`")
 SyntaxError(IfBodyAmbiguous   , "Ambiguous statements after `if` conditional")
+SyntaxError(WhileMissingCondition, "`while` must always lead a condition, i.e. `while (CONDITION) ...`")
+SyntaxError(WhileBodyAmbiguous   , "Ambiguous statements after `while` conditional")
+SyntaxError(DontDoThis           , "Please don\'t do this. It's really bad practice")

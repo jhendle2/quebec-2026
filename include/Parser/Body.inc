@@ -43,6 +43,8 @@ SyntaxMap(Statement, ElseBody  , Bodies)
 SyntaxMap(Body     , IfElseBody, Bodies)
 SyntaxMap(Bodies   , IfElseBody, Bodies)
 SyntaxMap(Statement, IfElseBody, Bodies)
+SyntaxMap(Statement, ForBody   , Bodies)
+SyntaxMap(ForBody  , Statement , Bodies)
 
 
 SyntaxMap(Statement, ElseBody, SyntaxErrorUnmatchedElse)
@@ -53,6 +55,14 @@ SyntaxMap(Bodies   , ElseBody, SyntaxErrorUnmatchedElse)
 SyntaxMap(Statement , BraceClose, BodyEnd)
 SyntaxMap(ReturnStmt, BraceClose, BodyEnd)
 SyntaxMap(Statements, BraceClose, BodyEnd)
+SyntaxMap(IfBody    , BraceClose, BodyEnd)
+SyntaxMap(ElseBody  , BraceClose, BodyEnd)
+SyntaxMap(IfElseBody, BraceClose, BodyEnd)
+SyntaxMap(WhileBody , BraceClose, BodyEnd)
+SyntaxMap(ForBody   , BraceClose, BodyEnd)
+
+SyntaxMap(Statements, BodyEnd   , BodyEnd)
+SyntaxMap(Bodies    , BodyEnd   , BodyEnd)
 
 SyntaxMap(BraceOpen , BraceClose, Body) // Simplest body, `{ }`
 SyntaxMap(BraceOpen , BodyEnd, Body)
