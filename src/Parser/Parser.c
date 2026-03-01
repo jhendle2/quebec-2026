@@ -3,6 +3,7 @@
 #include "Lexer/StringTypes.h"
 #include "Lexer/Token.h"
 #include "Log/Log.h"
+#include "Parser/SyntaxErrors.h"
 #include "Parser/SyntaxMap.h"
 #include "Parser/SyntaxTypes.h"
 
@@ -187,8 +188,8 @@ size_t lenSnodes(const Snodes snodes) {
 static bool combineSnodeHelper(
     Snode* p_snode_stack,
     Snode* current_parent,
-    const Snode back1,
-    const Snode back2
+    Snode  back1,
+    Snode  back2
 ) {
     // (1) Deduce combined type
     const SyntaxType combined_type = syntaxTypeMap(
@@ -206,6 +207,12 @@ static bool combineSnodeHelper(
     if (combined_type == SyntaxTypeUndefined) {
         snodePushBack(p_snode_stack, back2);
         snodePushBack(p_snode_stack, back1);
+        return false;
+    }
+    if (isSyntaxError(combined_type)) {
+        reportSyntaxError(combined_type, back2->tokens);
+        // Do some cleanup here
+        exit(1);
         return false;
     }
     

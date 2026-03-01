@@ -1,3 +1,5 @@
+#include "SyntaxErrors.inc"
+
 SyntaxType(Exprand)
 SyntaxType(ExprandR)
 SyntaxType(ExprandL)
@@ -63,3 +65,7 @@ SyntaxType(ArgList)
 SyntaxType(ArgListBegin)
 SyntaxType(ArgListEnd)
 SyntaxType(ExprEnd)
+SyntaxType(IfCondition)
+SyntaxType(IfBody)
+SyntaxType(ElseBody)
+SyntaxType(IfElseBody)

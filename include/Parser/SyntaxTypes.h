@@ -1,13 +1,16 @@
 #ifndef SYNTAX_TYPES_H
 #define SYNTAX_TYPES_H
 
-#include "Utils/Macro.h"
 #include "Lexer/Lexer.h"
+#include <stdbool.h>
+#include "Utils/Macro.h"
 
 typedef enum {
 SyntaxTypeUndefined=0,
 #define SyntaxType(ID) CAT(SyntaxType,ID),
+#define SyntaxError(ID, ...) CAT(SyntaxTypeSyntaxError,ID),
     #include "SyntaxTypes.inc"
+#undef SyntaxError
 #undef SyntaxType
 
 #define Operator(ID, S) CAT(SyntaxType,ID),
@@ -28,7 +31,9 @@ NumSyntaxTypes
 static const char* strSyntaxType[] = {
 "Undefined",
 #define SyntaxType(ID) QUOTE(ID),
+#define SyntaxError(ID, ...) QUOTE(ID),
     #include "SyntaxTypes.inc"
+#undef SyntaxError
 #undef SyntaxType
 
 #define Operator(ID, S) QUOTE(ID),
@@ -45,5 +50,11 @@ static const char* strSyntaxType[] = {
 };
 
 SyntaxType tokenToSyntaxType(const Token token);
+static inline bool isSyntaxError(const SyntaxType stype) {
+    #define SyntaxError(ID, ...) if (stype == CAT(SyntaxTypeSyntaxError, ID)) return true;
+        #include "SyntaxErrors.inc"
+    #undef SyntaxError
+    return false;
+}
 
 #endif /* SYNTAX_TYPES_H */
