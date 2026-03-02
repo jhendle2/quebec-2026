@@ -5,6 +5,7 @@
 
 #include "Lexer/Common.h"
 #include "Lexer/StringTypes.h"
+#include "Lexer/TokenTypes.h"
 #include "Log/Log.h"
 
 // static const size_t TokenSize = sizeof(struct token_s);

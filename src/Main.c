@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "IR/IR.h"
 #include "Lexer/Lexer.h"
 #include "Log/Log.h"
 #include "Parser/Parser.h"
@@ -18,12 +19,14 @@ int main(int argc, char** argv) {
     Tokens tokens = tokenizeFile(file_path);
     // dumpTokens(tokens);
     
-    Snode snode = buildSyntaxTree(tokens);
-    treeSnode(snode, 0);
+    Snode syntax_tree = buildSyntaxTree(tokens);
+    treeSnode(syntax_tree, 0);
+
+    genIR(syntax_tree);
     // treeSnodeIfOnlyOneToken(snode, 0);
     destroyTokens(&tokens);
 
-    destroySnode(&snode);
+    destroySnode(&syntax_tree);
 
     
     return EXIT_SUCCESS;

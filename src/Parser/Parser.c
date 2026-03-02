@@ -242,6 +242,74 @@ static bool combineSnodeHelper(
     return true;
 }
 
+Snode findChildFromType(Snode parent, const SyntaxType stype) {
+    if (parent == NULL) return NULL;
+
+    if (parent->stype == stype)
+        return parent;
+
+    if (parent->left) {
+        Snode found_left = findChildFromType(parent->left, stype);
+        if (found_left)
+            return found_left;
+    }
+        
+    if (parent->right) {
+        Snode found_right = findChildFromType(parent->right, stype);
+        if (found_right)
+            return found_right;
+    }
+    
+    return NULL;
+}
+
+bool hasChildFromType(Snode parent, const SyntaxType stype) {
+    return findChildFromType(parent, stype) != NULL;
+}
+
+Snode findChildFromTypes(Snode parent, const SyntaxType stypes[MAX_SYNTAX_TYPE_ARRAY]) {
+    if (parent == NULL) return NULL;
+
+    for (size_t i = 0; i<MAX_SYNTAX_TYPE_ARRAY; i++) {
+        if (stypes[i] == SyntaxTypeUndefined) break;
+        if (parent->stype == stypes[i])
+            return parent;
+    }
+
+    if (parent->left) {
+        Snode found_left = findChildFromTypes(parent->left, stypes);
+        if (found_left)
+            return found_left;
+    }
+        
+    if (parent->right) {
+        Snode found_right = findChildFromTypes(parent->right, stypes);
+        if (found_right)
+            return found_right;
+    }
+    
+    return NULL;
+}
+
+bool hasChildFromTypes(Snode parent, const SyntaxType stypes[MAX_SYNTAX_TYPE_ARRAY]) {
+    return findChildFromTypes(parent, stypes) != NULL;
+}
+
+
+// FIXME: Infinite recursion probably b/c tree is wrong :(
+Snode findParentFromType(Snode child, const SyntaxType stype) {
+    dumpSnode(child); printf("\n");
+    if (child == NULL)         return NULL;
+    if (child->stype == stype) return child;
+    if (child->parent) return
+        findParentFromType(child->parent, stype);
+    return NULL;
+}
+
+bool hasParentFromType(Snode child, const SyntaxType stype) {
+    return findParentFromType(child, stype) != NULL;
+}
+
 
 Snode buildSyntaxTree(const Token tokens) {
     // ----------------------------------------------------------------

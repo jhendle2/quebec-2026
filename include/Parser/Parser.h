@@ -19,4 +19,15 @@ void treeSnode(const Snode snode, const size_t level);
 void treeSnodeIfOnlyOneToken(const Snode snode, const size_t level);
 Snode buildSyntaxTree(const Token tokens);
 
+Snode findChildFromType(Snode parent, const SyntaxType stype);
+bool  hasChildFromType(Snode parent, const SyntaxType stype);
+
+#define MAX_SYNTAX_TYPE_ARRAY 8
+Snode findChildFromTypes(Snode parent, const SyntaxType stype[MAX_SYNTAX_TYPE_ARRAY]);
+bool  hasChildFromTypes(Snode parent, const SyntaxType stype[MAX_SYNTAX_TYPE_ARRAY]);
+
+Snode findParentFromType(Snode child, const SyntaxType stype);
+bool  hasParentFromType(Snode child, const SyntaxType stype);
+
+
 #endif /* PARSER_H */
