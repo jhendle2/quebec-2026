@@ -25,6 +25,7 @@ struct ir_s {
     IRType irtype;
     Token  tokens;
     IR     next;
+    Snode  origin;
 };
 typedef IR IRs;
 

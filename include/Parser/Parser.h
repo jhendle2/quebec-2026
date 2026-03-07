@@ -15,6 +15,7 @@ struct syntax_node_s {
 typedef Snode Snodes;
 
 void destroySnode(Snode* psnode);
+void dumpSnode(const Snode snode);
 void treeSnode(const Snode snode, const size_t level);
 void treeSnodeIfOnlyOneToken(const Snode snode, const size_t level);
 Snode buildSyntaxTree(const Token tokens);
@@ -29,5 +30,6 @@ bool  hasChildFromTypes(Snode parent, const SyntaxType stype[MAX_SYNTAX_TYPE_ARR
 Snode findParentFromType(Snode child, const SyntaxType stype);
 bool  hasParentFromType(Snode child, const SyntaxType stype);
 
+bool hasChildrenSnode(const Snode snode);
 
 #endif /* PARSER_H */

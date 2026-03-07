@@ -12,7 +12,8 @@
 IR newIR(
     const IRType irtype,
     const short  nargs,
-    const Token  tokens
+    const Token  tokens,
+    const Snode  origin
 ) {
     IR ir = malloc(sizeof(*ir));
     try (ir!=NULL,
@@ -23,6 +24,7 @@ IR newIR(
     ir->irtype = irtype;
     ir->tokens = tokens;
     ir->next   = NULL;
+    ir->origin = origin;
 
     return ir;
 }
@@ -52,7 +54,10 @@ void dumpIR(const IR ir) {
     if (ir == NULL) return;
     printf("%s ", strIRType[ir->irtype]);
     listTokens(ir->tokens);
-    printf(" (%d)\n", ir->nargs);
+    printf(" (%d) ; ", ir->nargs);
+    if (ir->origin)
+        dumpSnode(ir->origin);
+    printf("\n");
 }
 
 void dumpIRs(const IRs irs) {
@@ -109,7 +114,8 @@ void genIRFromFnDecl(IR* p_irs, const Snode fn_decl) {
         newIR(
             IRTypeDeclare,
             2,
-            tokens
+            tokens,
+            fn_decl
         )
     );
 
@@ -117,7 +123,8 @@ void genIRFromFnDecl(IR* p_irs, const Snode fn_decl) {
         newIR(
             IRTypeEnter,
             0,
-            NULL
+            NULL,
+            fn_decl
         )
     );
 }
@@ -144,7 +151,8 @@ void genIRFromDeclaration(IR* p_irs, const Snode decl) {
         newIR(
             IRTypeDeclare,
             2,
-            tokens
+            tokens,
+            decl
         )
     );
 }
@@ -155,24 +163,25 @@ void genIRFromBodyEnd(IR* p_irs, const Snode body_end) {
             newIR(
                 IRTypeExit,
                 0,
-                NULL
+                NULL,
+                body_end
             )
         );
     }
 }
 
-void genIRFromReturn(IR* p_irs, const Snode ret) {
+void genIRFromReturn(IR* p_irs, __unused const Snode ret) {
     IR ir = newIR(
         IRTypeReturn,
         0,
-        NULL
+        NULL,
+        ret
     );
     pushBackIR(p_irs, ir);
 }
 
-
-
 void genIRFromSnode(IR* p_irs, const Snode snode) {
+    if (snode == NULL) return;
     // printf("IR @ %p\n", snode);
     // IR ir = newIR(IRTypeNoop);
 
@@ -197,7 +206,16 @@ void genIRFromSnode(IR* p_irs, const Snode snode) {
     if (snode->stype == SyntaxTypeBodyEnd)
         return genIRFromBodyEnd(p_irs, snode);
 
-    // pushBackIR(p_irs, ir);
+    if (!hasChildrenSnode(snode))
+        pushBackIR(
+            p_irs,
+            newIR(
+                IRTypeNoop,
+                0,
+                NULL,
+                snode
+            )
+        );
 }
 
 void genIRFromTree(IR* p_irs, const Snode syntax_tree) {

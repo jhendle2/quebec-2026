@@ -50,20 +50,12 @@ void snodePushBack(Snode* psnode, Snode next) {
 }
 
 void snodeAddLeftChild(Snode snode, Snode child) {
-    // snodePushBack(
-    //     &(snode->left),
-    //     child
-    // );
-    snode->left = child;
+    snode->left   = child;
     child->parent = snode;
 }
 
 void snodeAddRightChild(Snode snode, Snode child) {
-    // snodePushBack(
-    //     &(snode->right),
-    //     child
-    // );
-    snode->right = child;
+    snode->right  = child;
     child->parent = snode;
 }
 
@@ -296,9 +288,9 @@ bool hasChildFromTypes(Snode parent, const SyntaxType stypes[MAX_SYNTAX_TYPE_ARR
 }
 
 
-// FIXME: Infinite recursion probably b/c tree is wrong :(
+// FIXME: Infinite recursion? probably b/c tree is wrong :(
 Snode findParentFromType(Snode child, const SyntaxType stype) {
-    dumpSnode(child); printf("\n");
+    // dumpSnode(child); printf("\n");
     if (child == NULL)         return NULL;
     if (child->stype == stype) return child;
     if (child->parent) return
@@ -310,6 +302,14 @@ bool hasParentFromType(Snode child, const SyntaxType stype) {
     return findParentFromType(child, stype) != NULL;
 }
 
+bool hasChildrenSnode(const Snode snode) {
+    return (
+        snode!=NULL && (
+            (snode->left !=NULL) ||
+            (snode->right!=NULL)
+        )
+    );
+}
 
 Snode buildSyntaxTree(const Token tokens) {
     // ----------------------------------------------------------------
